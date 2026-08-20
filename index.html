@@ -532,125 +532,121 @@
     function initAudio() {
       if (synthInitialized) return;
       console.log("NatureVerse: Synthesizing natural audio nodes...");
-      
+
       try {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
-        
-        const noiseBuffer = createNoiseBuffer(audioCtx);
-        
-        // 1. Wind Sound Generator
-        const windNoise = audioCtx.createBufferSource();
-        windNoise.buffer = noiseBuffer;
-        windNoise.loop = true;
 
-        const windFilter = audioCtx.createBiquadFilter();
-        windFilter.type = 'lowpass';
-        windFilter.Q.value = 1.2;
+        // Inner function — starts all sources once context is running
+        const startSources = () => {
+          // Each source gets its own buffer (sharing one buffer across sources is silent on some browsers)
+          const windBuffer      = createNoiseBuffer(audioCtx);
+          const waterfallBuffer = createNoiseBuffer(audioCtx);
+          const riverBuffer     = createNoiseBuffer(audioCtx);
 
-        const windGain = audioCtx.createGain();
-        windGain.gain.value = 0.08;
+          // 1. Wind Sound Generator
+          const windNoise = audioCtx.createBufferSource();
+          windNoise.buffer = windBuffer;
+          windNoise.loop = true;
 
-        const windLFO = audioCtx.createOscillator();
-        windLFO.frequency.value = 0.08; 
-        const windLFOGain = audioCtx.createGain();
-        windLFOGain.gain.value = 150; 
+          const windFilter = audioCtx.createBiquadFilter();
+          windFilter.type = 'lowpass';
+          windFilter.Q.value = 1.2;
+          windFilter.frequency.value = 350;
 
-        windLFO.connect(windLFOGain);
-        windLFOGain.connect(windFilter.frequency);
-        windFilter.frequency.value = 350; 
+          const windGain = audioCtx.createGain();
+          windGain.gain.value = 0.18;
 
-        windNoise.connect(windFilter);
-        windFilter.connect(windGain);
-        windGain.connect(audioCtx.destination);
-        
-        windLFO.start();
-        windNoise.start();
+          const windLFO = audioCtx.createOscillator();
+          windLFO.frequency.value = 0.08;
+          const windLFOGain = audioCtx.createGain();
+          windLFOGain.gain.value = 150;
 
-        // 2. Spatialized Waterfall Noise
-        const waterfallNoise = audioCtx.createBufferSource();
-        waterfallNoise.buffer = noiseBuffer;
-        waterfallNoise.loop = true;
+          windLFO.connect(windLFOGain);
+          windLFOGain.connect(windFilter.frequency);
+          windNoise.connect(windFilter);
+          windFilter.connect(windGain);
+          windGain.connect(audioCtx.destination);
+          windLFO.start();
+          windNoise.start();
 
-        const waterfallFilter = audioCtx.createBiquadFilter();
-        waterfallFilter.type = 'bandpass';
-        waterfallFilter.frequency.value = 520;
-        waterfallFilter.Q.value = 0.7;
+          // 2. Spatialized Waterfall Noise
+          const waterfallNoise = audioCtx.createBufferSource();
+          waterfallNoise.buffer = waterfallBuffer;
+          waterfallNoise.loop = true;
 
-        const waterfallGain = audioCtx.createGain();
-        waterfallGain.gain.value = 0.22;
+          const waterfallFilter = audioCtx.createBiquadFilter();
+          waterfallFilter.type = 'bandpass';
+          waterfallFilter.frequency.value = 520;
+          waterfallFilter.Q.value = 0.7;
 
-        const waterfallPanner = audioCtx.createPanner ? audioCtx.createPanner() : null;
-        
-        waterfallNoise.connect(waterfallFilter);
-        waterfallFilter.connect(waterfallGain);
+          const waterfallGain = audioCtx.createGain();
+          waterfallGain.gain.value = 0.45;
 
-        if (waterfallPanner) {
+          const waterfallPanner = audioCtx.createPanner();
           waterfallPanner.panningModel = 'HRTF';
           waterfallPanner.distanceModel = 'inverse';
           waterfallPanner.refDistance = 5;
           waterfallPanner.maxDistance = 100;
           waterfallPanner.rolloffFactor = 1.2;
-          
           waterfallPanner.positionX.value = -43;
           waterfallPanner.positionY.value = 8;
           waterfallPanner.positionZ.value = -43;
-          
+
+          waterfallNoise.connect(waterfallFilter);
+          waterfallFilter.connect(waterfallGain);
           waterfallGain.connect(waterfallPanner);
           waterfallPanner.connect(audioCtx.destination);
-        } else {
-          waterfallGain.connect(audioCtx.destination);
-        }
-        
-        waterfallNoise.start();
+          waterfallNoise.start();
 
-        // 3. Spatialized River Ambient Noise
-        const riverNoise = audioCtx.createBufferSource();
-        riverNoise.buffer = noiseBuffer;
-        riverNoise.loop = true;
+          // 3. Spatialized River Ambient Noise
+          const riverNoise = audioCtx.createBufferSource();
+          riverNoise.buffer = riverBuffer;
+          riverNoise.loop = true;
 
-        const riverFilter = audioCtx.createBiquadFilter();
-        riverFilter.type = 'bandpass';
-        riverFilter.frequency.value = 650;
-        riverFilter.Q.value = 0.85;
+          const riverFilter = audioCtx.createBiquadFilter();
+          riverFilter.type = 'bandpass';
+          riverFilter.frequency.value = 650;
+          riverFilter.Q.value = 0.85;
 
-        const riverGain = audioCtx.createGain();
-        riverGain.gain.value = 0.12;
+          const riverGain = audioCtx.createGain();
+          riverGain.gain.value = 0.28;
 
-        const riverPanner = audioCtx.createPanner ? audioCtx.createPanner() : null;
-
-        riverNoise.connect(riverFilter);
-        riverFilter.connect(riverGain);
-
-        if (riverPanner) {
+          const riverPanner = audioCtx.createPanner();
           riverPanner.panningModel = 'HRTF';
           riverPanner.distanceModel = 'inverse';
           riverPanner.refDistance = 4;
           riverPanner.maxDistance = 80;
           riverPanner.rolloffFactor = 1.0;
-          
           riverPanner.positionX.value = -15;
           riverPanner.positionY.value = 0.1;
           riverPanner.positionZ.value = -7;
-          
+
+          riverNoise.connect(riverFilter);
+          riverFilter.connect(riverGain);
           riverGain.connect(riverPanner);
           riverPanner.connect(audioCtx.destination);
+          riverNoise.start();
+
+          // 4. Self-rescheduling Bird Chirp Scheduler
+          const scheduleBirdChirp = () => {
+            triggerBirdChirp();
+            setTimeout(scheduleBirdChirp, 7000 + Math.random() * 9000);
+          };
+          setTimeout(scheduleBirdChirp, 3000 + Math.random() * 4000);
+
+          synthInitialized = true;
+          console.log("NatureVerse: Synthesizer successfully running.");
+        };
+
+        // Resume must complete before starting sources
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume().then(startSources).catch(err => {
+            console.warn("AudioContext resume failed:", err);
+          });
         } else {
-          riverGain.connect(audioCtx.destination);
+          startSources();
         }
 
-        riverNoise.start();
-
-        // 4. Random Spatial Bird Chirp Scheduler
-        setInterval(() => {
-          triggerBirdChirp();
-        }, 7000 + Math.random() * 9000);
-
-        synthInitialized = true;
-        console.log("NatureVerse: Synthesizer successfully running.");
       } catch (err) {
         console.warn("Web Audio API not fully initialized or blocked:", err);
       }
