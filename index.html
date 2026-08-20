@@ -487,10 +487,10 @@
       </a-camera>
 
       <!-- Left Controller (Laser Pointer only for interaction) -->
-      <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .interactive; far: 40; showLine: true" line="color: #0be6a8; opacity: 0.5"></a-entity>
+      <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .interactive; far: 40; showLine: true" line="color: #0be6a8; opacity: 0.5" visible="false"></a-entity>
 
       <!-- Right Controller (Laser Pointer + Teleport functionality) -->
-      <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .interactive, .teleportable; far: 40; showLine: true" line="color: #b2fefa; opacity: 0.5" teleporter></a-entity>
+      <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .interactive, .teleportable; far: 40; showLine: true" line="color: #b2fefa; opacity: 0.5" teleporter visible="false"></a-entity>
     </a-entity>
 
   </a-scene>
@@ -1006,9 +1006,13 @@
     sceneEl.addEventListener('enter-vr', () => {
       document.getElementById('desktop-cursor').setAttribute('visible', false);
       instructionsOverlay.style.display = 'none';
+      document.getElementById('leftHand').setAttribute('visible', true);
+      document.getElementById('rightHand').setAttribute('visible', true);
     });
     sceneEl.addEventListener('exit-vr', () => {
       document.getElementById('desktop-cursor').setAttribute('visible', true);
+      document.getElementById('leftHand').setAttribute('visible', false);
+      document.getElementById('rightHand').setAttribute('visible', false);
       if (landingScreen.style.display === 'none') {
         instructionsOverlay.style.display = 'block';
       }
