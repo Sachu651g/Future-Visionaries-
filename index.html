@@ -742,6 +742,178 @@
       snortSource.stop(now + 0.22);
     }
 
+    // Synthesized Deer Footstep (soft thud - hooves on earth)
+    function playDeerFootstep(x, y, z, isRunning) {
+      if (!audioCtx || audioCtx.state === 'suspended') return;
+      const now = audioCtx.currentTime;
+
+      const src = audioCtx.createBufferSource();
+      src.buffer = createNoiseBuffer(audioCtx);
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(isRunning ? 280 : 180, now);
+      filter.Q.value = 0.8;
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(isRunning ? 0.09 : 0.05, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + (isRunning ? 0.09 : 0.13));
+
+      const panner = audioCtx.createPanner ? audioCtx.createPanner() : null;
+      src.connect(filter);
+      filter.connect(gain);
+      if (panner) {
+        panner.panningModel = 'HRTF';
+        panner.distanceModel = 'inverse';
+        panner.refDistance = 3;
+        panner.maxDistance = 30;
+        panner.rolloffFactor = 1.4;
+        panner.positionX.value = x;
+        panner.positionY.value = y;
+        panner.positionZ.value = z;
+        gain.connect(panner);
+        panner.connect(audioCtx.destination);
+      } else {
+        gain.connect(audioCtx.destination);
+      }
+      src.start(now);
+      src.stop(now + 0.15);
+    }
+
+    // Synthesized Deer Idle Soft Breath (calm low hum)
+    function playDeerBreath(x, y, z) {
+      if (!audioCtx || audioCtx.state === 'suspended') return;
+      const now = audioCtx.currentTime;
+
+      const src = audioCtx.createBufferSource();
+      src.buffer = createNoiseBuffer(audioCtx);
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(120, now);
+      filter.Q.value = 2.5;
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.06, now + 0.18);
+      gain.gain.linearRampToValueAtTime(0.04, now + 0.45);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+
+      const panner = audioCtx.createPanner ? audioCtx.createPanner() : null;
+      src.connect(filter);
+      filter.connect(gain);
+      if (panner) {
+        panner.panningModel = 'HRTF';
+        panner.distanceModel = 'inverse';
+        panner.refDistance = 2;
+        panner.maxDistance = 14;
+        panner.rolloffFactor = 1.8;
+        panner.positionX.value = x;
+        panner.positionY.value = y;
+        panner.positionZ.value = z;
+        gain.connect(panner);
+        panner.connect(audioCtx.destination);
+      } else {
+        gain.connect(audioCtx.destination);
+      }
+      src.start(now);
+      src.stop(now + 0.7);
+    }
+
+    // Synthesized Duck Quack (short FM tone burst)
+    function playDuckQuack(x, y, z) {
+      if (!audioCtx || audioCtx.state === 'suspended') return;
+      const now = audioCtx.currentTime;
+
+      // FM carrier + modulator for nasal quack character
+      const carrier = audioCtx.createOscillator();
+      const modulator = audioCtx.createOscillator();
+      const modGain = audioCtx.createGain();
+
+      carrier.type = 'sawtooth';
+      carrier.frequency.setValueAtTime(420, now);
+      carrier.frequency.exponentialRampToValueAtTime(280, now + 0.12);
+
+      modulator.type = 'sine';
+      modulator.frequency.value = 85;
+      modGain.gain.value = 180;
+
+      modulator.connect(modGain);
+      modGain.connect(carrier.frequency);
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 900;
+      filter.Q.value = 1.2;
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.07, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+      const panner = audioCtx.createPanner ? audioCtx.createPanner() : null;
+      carrier.connect(filter);
+      filter.connect(gain);
+      if (panner) {
+        panner.panningModel = 'HRTF';
+        panner.distanceModel = 'inverse';
+        panner.refDistance = 3;
+        panner.maxDistance = 25;
+        panner.rolloffFactor = 1.2;
+        panner.positionX.value = x;
+        panner.positionY.value = y;
+        panner.positionZ.value = z;
+        gain.connect(panner);
+        panner.connect(audioCtx.destination);
+      } else {
+        gain.connect(audioCtx.destination);
+      }
+      modulator.start(now);
+      modulator.stop(now + 0.18);
+      carrier.start(now);
+      carrier.stop(now + 0.18);
+    }
+
+    // Synthesized Rabbit Hop Thump (tiny percussive hit)
+    function playRabbitHop(x, y, z) {
+      if (!audioCtx || audioCtx.state === 'suspended') return;
+      const now = audioCtx.currentTime;
+
+      const src = audioCtx.createBufferSource();
+      src.buffer = createNoiseBuffer(audioCtx);
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(220, now);
+      filter.Q.value = 0.6;
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.04, now + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+      const panner = audioCtx.createPanner ? audioCtx.createPanner() : null;
+      src.connect(filter);
+      filter.connect(gain);
+      if (panner) {
+        panner.panningModel = 'HRTF';
+        panner.distanceModel = 'inverse';
+        panner.refDistance = 1.5;
+        panner.maxDistance = 12;
+        panner.rolloffFactor = 1.6;
+        panner.positionX.value = x;
+        panner.positionY.value = y;
+        panner.positionZ.value = z;
+        gain.connect(panner);
+        panner.connect(audioCtx.destination);
+      } else {
+        gain.connect(audioCtx.destination);
+      }
+      src.start(now);
+      src.stop(now + 0.08);
+    }
+
     // Synthesized Teleportation Sound Effect
     function playTeleportSound() {
       if (!audioCtx || audioCtx.state === 'suspended') return;
@@ -1093,6 +1265,7 @@
       },
       init: function () {
         this.timeOffset = Math.random() * 100;
+        this.lastQuackTime = 8000 + Math.random() * 10000;
       },
       tick: function (time, dt) {
         const t = (time * 0.0002) + this.timeOffset;
@@ -1118,6 +1291,21 @@
         
         const yawDeg = yawRad * (180 / Math.PI) + 180;
         this.el.setAttribute('rotation', `0 ${yawDeg} 0`);
+
+        // Occasional quack — spatialized from duck's current position
+        this.lastQuackTime -= dt;
+        if (this.lastQuackTime <= 0) {
+          this.lastQuackTime = 8000 + Math.random() * 12000;
+          const pos = this.el.getAttribute('position');
+          // 30% chance to double-quack
+          playDuckQuack(pos.x, pos.y, pos.z);
+          if (Math.random() < 0.3) {
+            setTimeout(() => {
+              const p = this.el.getAttribute('position');
+              if (p) playDuckQuack(p.x, p.y, p.z);
+            }, 280 + Math.random() * 120);
+          }
+        }
       }
     });
 
@@ -1233,6 +1421,12 @@
         this.currentPos.x += dir.x * step;
         this.currentPos.z += dir.z * step;
         this.el.setAttribute('position', `${this.currentPos.x} 0 ${this.currentPos.z}`);
+
+        // Play landing thump sound once per hop (when hop arc descends back to ground)
+        const prevSin = Math.sin(this.hopTimer - (dt / 1000) * 8.5);
+        if (prevSin > 0 && Math.sin(this.hopTimer) <= 0) {
+          playRabbitHop(this.currentPos.x, 0, this.currentPos.z);
+        }
         
         if (this.bodyGroup) {
           this.bodyGroup.setAttribute('position', `0 ${hopHeight} 0`);
@@ -1758,6 +1952,12 @@
         
         this.tempPlayerWorldPos = new THREE.Vector3();
         this.tempDeerWorldPos = new THREE.Vector3();
+
+        // Sound timing trackers
+        this.lastStepTime = 0;
+        this.lastBreathTime = 0;
+        this.stepInterval = 0;       // set per state
+        this.breathInterval = 18000 + Math.random() * 12000;
         
         console.log("NatureVerse: Deer AI loaded and initialized.");
       },
@@ -1776,6 +1976,16 @@
         
         this.timer -= dt;
         
+        // Idle breath sound — periodic soft exhale
+        if (this.state === this.states.IDLE) {
+          this.lastBreathTime -= dt;
+          if (this.lastBreathTime <= 0) {
+            this.el.object3D.getWorldPosition(this.tempDeerWorldPos);
+            playDeerBreath(this.tempDeerWorldPos.x, this.tempDeerWorldPos.y + 1.4, this.tempDeerWorldPos.z);
+            this.lastBreathTime = 18000 + Math.random() * 12000;
+          }
+        }
+
         switch (this.state) {
           case this.states.IDLE:
             this.updateIdleState(time);
@@ -1858,6 +2068,13 @@
         this.currentPos.z += dir.z * step;
         this.el.setAttribute('position', `${this.currentPos.x} 0 ${this.currentPos.z}`);
         
+        // Footstep sound — one thud per stride cycle (~every 700ms walking)
+        this.lastStepTime += dt;
+        if (this.lastStepTime >= 700) {
+          this.lastStepTime = 0;
+          playDeerFootstep(this.currentPos.x, 0, this.currentPos.z, false);
+        }
+
         if (this.neckPivot) {
           this.neckPivot.setAttribute('rotation', '-15 0 0');
         }
@@ -1884,6 +2101,13 @@
         this.currentPos.x += dir.x * step;
         this.currentPos.z += dir.z * step;
         this.el.setAttribute('position', `${this.currentPos.x} 0 ${this.currentPos.z}`);
+
+        // Rapid gallop thuds (~every 280ms fleeing)
+        this.lastStepTime += dt;
+        if (this.lastStepTime >= 280) {
+          this.lastStepTime = 0;
+          playDeerFootstep(this.currentPos.x, 0, this.currentPos.z, true);
+        }
         
         this.animateLegs(time, 15, 34);
       },
