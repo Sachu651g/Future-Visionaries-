@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- ==========================================
+       1. HEAD
+       ========================================== -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NatureVerse - Immersive 3D Exploration</title>
+  <meta name="description" content="Step away from the digital world and explore an untouched natural ecosystem. No Humans. No Machines. Just Nature.">
+  
+  <!-- A-Frame VR Library -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  
+  <!-- Google Fonts for premium typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Elegant Landing Screen CSS styling */
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Outfit', sans-serif;
+      background-color: #0c181b;
+    }
+
+    #landing-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #091315 0%, #15292d 50%, #1d363c 100%);
+      color: #ffffff;
+      transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s ease;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 50px 60px;
+      text-align: center;
+      max-width: 520px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+      animation: fadeInUp 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      font-size: 3.2rem;
+      font-weight: 700;
+      letter-spacing: 8px;
+      margin: 0 0 10px 0;
+      background: linear-gradient(90deg, #b2fefa 0%, #0be6a8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .tagline {
+      font-size: 1.1rem;
+      font-style: italic;
+      color: #92cca6;
+      margin: 0 0 30px 0;
+      letter-spacing: 2px;
+      font-weight: 300;
+    }
+
+    .description {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #cbd5e1;
+      margin: 0 0 40px 0;
+      font-weight: 300;
+    }
+
+    #enter-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid #0be6a8;
+      color: #ffffff;
+      padding: 16px 45px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 3px;
+      border-radius: 30px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 0 20px rgba(11, 230, 168, 0.15);
+    }
+
+    #enter-btn:hover {
+      background: #0be6a8;
+      color: #091315;
+      transform: translateY(-4px);
+      box-shadow: 0 0 30px rgba(11, 230, 168, 0.45);
+    }
+
+    #enter-btn:active {
+      transform: translateY(-1px);
+    }
+
+    .vr-warning {
+      margin-top: 25px;
+      font-size: 0.8rem;
+      color: #64748b;
+      font-weight: 300;
+      line-height: 1.4;
+    }
+
+    .vr-warning span {
+      color: #f43f5e;
+      font-weight: 400;
+    }
+
+    /* Small credit */
+    .credit {
+      position: absolute;
+      bottom: 20px;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      color: #475569;
+      text-transform: uppercase;
+      font-weight: 400;
+    }
+
+    /* Controls Instruction overlay inside 3D world */
+    #desktop-instructions {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: rgba(12, 24, 27, 0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 15px 20px;
+      border-radius: 12px;
+      color: #ffffff;
+      font-size: 0.85rem;
+      pointer-events: none;
+      display: none; /* hidden until entering scene */
+      line-height: 1.5;
+    }
+
+    #desktop-instructions b {
+      color: #0be6a8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+       2. LANDING SCREEN
+       ========================================== -->
+  <div id="landing-screen">
+    <div class="glass-card">
+      <h1>NATUREVERSE</h1>
+      <p class="tagline">"No Humans. No Machines. Just Nature."</p>
+      <p class="description">
+        Step away from the digital world and explore an untouched natural ecosystem. Escape modern technological noise and breathe in spatialized tranquility.
+      </p>
+      <button id="enter-btn">ENTER NATUREVERSE</button>
+      <p id="vr-fallback-msg" class="vr-warning" style="display: none;">
+        <span>⚠️ Immersive VR not detected.</span><br>
+        NatureVerse runs in 3D desktop fallback mode here. To experience absolute immersion, open this link in the <b>Meta Quest 3S browser</b>.
+      </p>
+    </div>
+    <div class="credit">Future Visionaries</div>
+  </div>
+
+  <!-- Instruction box for desktop locomotion and zoom -->
+  <div id="desktop-instructions">
+    <b>Navigation Guide:</b><br>
+    • Look around: <b>Drag mouse</b><br>
+    • Go front / back / sides: <b>W, A, S, D</b> or <b>Arrow Keys</b><br>
+    • Zoom in / out: <b>Scroll wheel</b>, <b>+ / - keys</b>, or <b>Z / X keys</b><br>
+    • Click on ground: <b>Teleport</b> instantly
+  </div>
+
+  <!-- ==========================================
+       3. A-FRAME SCENE
+       ========================================== -->
+  <a-scene fog="type: exponential; color: #a9c6cc; density: 0.013" renderer="antialias: true; colorManagement: true">
+    
+    <a-assets></a-assets>
+
+    <!-- Sun and Atmosphere Lighting -->
+    <a-entity light="type: ambient; color: #9bbcd4; intensity: 0.6"></a-entity>
+    <a-entity light="type: directional; color: #fff5e0; intensity: 0.95; castShadow: false" position="25 45 -20"></a-entity>
+    
+    <!-- Soft sky dome representing peaceful early morning gradient -->
+    <a-sky color="#a9c6cc"></a-sky>
+
+    <!-- ==========================================
+         4. ENVIRONMENT
+         ========================================== -->
+    
+    <!-- Terrain: Grassy floor plane with custom grass texture component -->
+    <a-circle id="terrain" class="teleportable" radius="100" rotation="-90 0 0" position="0 0 0" material="color: #27402f; shader: flat" procedural-ground></a-circle>
+
+    <!-- Distant Mountains (Slate low-poly formations wrapping the scene) -->
+    <a-entity id="mountains">
+      <a-cone radius-bottom="28" height="55" color="#526266" position="-40 18 -80" segments-radial="5" rotation="0 15 0" material="shader: flat"></a-cone>
+      <a-cone radius-bottom="35" height="70" color="#47575b" position="0 25 -95" segments-radial="4" rotation="0 45 0" material="shader: flat"></a-cone>
+      <a-cone radius-bottom="25" height="50" color="#5c6e73" position="45 15 -85" segments-radial="5" rotation="0 10 0" material="shader: flat"></a-cone>
+      
+      <a-cone radius-bottom="32" height="62" color="#4a5a5e" position="-85 20 -35" segments-radial="5" rotation="0 30 0" material="shader: flat"></a-cone>
+      <a-cone radius-bottom="30" height="58" color="#4a5a5e" position="80 18 -25" segments-radial="4" rotation="0 -25 0" material="shader: flat"></a-cone>
+      <a-cone radius-bottom="35" height="65" color="#405054" position="-75 22 45" segments-radial="5" rotation="0 60 0" material="shader: flat"></a-cone>
+      <a-cone radius-bottom="28" height="52" color="#526266" position="75 16 55" segments-radial="5" rotation="0 -45 0" material="shader: flat"></a-cone>
+    </a-entity>
+
+    <!-- Waterfall Cliff Structure (Origin of river & waterfall) -->
+    <a-entity id="waterfall-cliff" position="-46 0 -46">
+      <a-dodecahedron position="0 4 0" radius="9" color="#3c4144" scale="1.4 1.8 1.4" material="roughness: 0.9"></a-dodecahedron>
+      <a-dodecahedron position="-1.5 11 -1.5" radius="7.5" color="#313538" scale="1.3 1.6 1.3" material="roughness: 0.95"></a-dodecahedron>
+      <a-dodecahedron position="-3 17 -3" radius="6" color="#272a2c" scale="1.2 1.4 1.2" material="roughness: 1"></a-dodecahedron>
+    </a-entity>
+
+    <!-- River Water Mesh (Formed of circles and rectangles flowing diagonally) -->
+    <a-entity id="river-system">
+      <a-circle id="waterfall-pool" radius="9" color="#4ea5b5" opacity="0.85" position="-42 0.05 -42" rotation="-90 0 0" material="transparent: true; roughness: 0.1" procedural-water="speed: 0.6; scaleX: 3; scaleY: 3"></a-circle>
+      
+      <a-plane id="river-seg1" width="8" height="28" position="-33.5 0.05 -31" rotation="-90 37.6 0" material="transparent: true; roughness: 0.1" procedural-water="speed: 0.8; scaleX: 2; scaleY: 8"></a-plane>
+      <a-plane id="river-seg2" width="8" height="32" position="-15 0.05 -7.5" rotation="-90 38.6 0" material="transparent: true; roughness: 0.1" procedural-water="speed: 0.8; scaleX: 2; scaleY: 9"></a-plane>
+      <a-plane id="river-seg3" width="8" height="28" position="5 0.05 15" rotation="-90 45 0" material="transparent: true; roughness: 0.1" procedural-water="speed: 0.8; scaleX: 2; scaleY: 8"></a-plane>
+      <a-plane id="river-seg4" width="8" height="36" position="30 0.05 35" rotation="-90 56.3 0" material="transparent: true; roughness: 0.1" procedural-water="speed: 0.8; scaleX: 2; scaleY: 10"></a-plane>
+    </a-entity>
+
+    <!-- Waterfall Mesh (Vertical flowing plane + Mist generator) -->
+    <a-entity id="waterfall-container">
+      <a-plane id="waterfall-stream" position="-43.2 7.8 -43.2" rotation="0 45 0" width="8.2" height="15.8" material="transparent: true; roughness: 0.1; side: double" procedural-water="speed: 3.5; scaleX: 2; scaleY: 4"></a-plane>
+      <a-entity id="waterfall-foam" position="-42 0.2 -42" waterfall-mist></a-entity>
+    </a-entity>
+
+    <!-- Forest Spawner Component handles randomized trees, rocks, flowers and wildlife setup -->
+    <a-entity forest-generator></a-entity>
+
+
+    <!-- ==========================================
+         5. WILDLIFE
+         ========================================== -->
+
+    <!-- Interactive Stag (Deer) -->
+    <a-entity class="deer" position="5 0 -6" rotation="0 -45 0" deer-behavior class="interactive">
+      <a-entity class="body-group" position="0 0.8 0">
+        <a-box class="deer-torso" width="0.48" height="0.48" depth="1.15" color="#8c5835" material="roughness: 0.9"></a-box>
+        
+        <!-- Spots -->
+        <a-box width="0.05" height="0.01" depth="0.05" color="#ffffff" position="0.12 0.25 0.2" material="shader: flat"></a-box>
+        <a-box width="0.05" height="0.01" depth="0.05" color="#ffffff" position="-0.12 0.25 0.1" material="shader: flat"></a-box>
+        <a-box width="0.05" height="0.01" depth="0.05" color="#ffffff" position="0.1 0.25 -0.1" material="shader: flat"></a-box>
+        <a-box width="0.05" height="0.01" depth="0.05" color="#ffffff" position="-0.1 0.25 -0.2" material="shader: flat"></a-box>
+        
+        <a-box class="deer-tail" width="0.1" height="0.25" depth="0.1" color="#ffffff" position="0 0.15 0.6" rotation="40 0 0" material="roughness: 0.9">
+          <a-box width="0.11" height="0.2" depth="0.04" color="#8c5835" position="0 0.03 0.03" material="roughness: 0.9"></a-box>
+        </a-box>
+        
+        <a-entity class="neck-pivot" position="0 0.2 -0.45" rotation="-28 0 0">
+          <a-box class="deer-neck" width="0.22" height="0.65" depth="0.22" color="#8c5835" position="0 0.25 0" material="roughness: 0.9">
+            <a-box width="0.23" height="0.55" depth="0.04" color="#fef6e4" position="0 0 -0.1" material="roughness: 0.9"></a-box>
+            
+            <a-entity class="deer-head" position="0 0.35 -0.1" rotation="20 0 0">
+              <a-box width="0.24" height="0.24" depth="0.45" color="#8c5835" material="roughness: 0.9">
+                <a-box width="0.14" height="0.13" depth="0.2" color="#3c1e09" position="0 -0.05 -0.25" material="roughness: 0.95"></a-box>
+                <a-sphere radius="0.03" color="#111111" position="0.12 0.05 -0.1" material="shader: flat"></a-sphere>
+                <a-sphere radius="0.03" color="#111111" position="-0.12 0.05 -0.1" material="shader: flat"></a-sphere>
+                <a-cone radius-bottom="0.04" radius-top="0" height="0.18" color="#8c5835" position="0.13 0.15 0.05" rotation="25 0 -30" material="roughness: 0.9"></a-cone>
+                <a-cone radius-bottom="0.04" radius-top="0" height="0.18" color="#8c5835" position="-0.13 0.15 0.05" rotation="25 0 30" material="roughness: 0.9"></a-cone>
+                <a-entity class="antlers">
+                  <a-box width="0.03" height="0.32" depth="0.03" color="#c1b29a" position="0.08 0.2 0" rotation="-15 10 25" material="roughness: 1">
+                    <a-box width="0.02" height="0.15" depth="0.02" color="#c1b29a" position="0.04 0.12 0" rotation="0 0 -45"></a-box>
+                    <a-box width="0.02" height="0.12" depth="0.02" color="#c1b29a" position="-0.02 0.22 0" rotation="0 0 35"></a-box>
+                  </a-box>
+                  <a-box width="0.03" height="0.32" depth="0.03" color="#c1b29a" position="-0.08 0.2 0" rotation="-15 -10 -25" material="roughness: 1">
+                    <a-box width="0.02" height="0.15" depth="0.02" color="#c1b29a" position="-0.04 0.12 0" rotation="0 0 45"></a-box>
+                    <a-box width="0.02" height="0.12" depth="0.02" color="#c1b29a" position="0.02 0.22 0" rotation="0 0 -35"></a-box>
+                  </a-box>
+                </a-entity>
+              </a-box>
+            </a-entity>
+          </a-box>
+        </a-entity>
+      </a-entity>
+      
+      <a-entity class="leg-fl" position="0.16 0.58 -0.42">
+        <a-cylinder radius="0.045" height="0.62" color="#8c5835" position="0 -0.31 0" material="roughness: 0.9">
+          <a-cylinder radius="0.05" height="0.06" color="#3c1e09" position="0 -0.31 0" material="roughness: 1"></a-cylinder>
+        </a-cylinder>
+      </a-entity>
+      
+      <a-entity class="leg-fr" position="-0.16 0.58 -0.42">
+        <a-cylinder radius="0.045" height="0.62" color="#8c5835" position="0 -0.31 0" material="roughness: 0.9">
+          <a-cylinder radius="0.05" height="0.06" color="#3c1e09" position="0 -0.31 0" material="roughness: 1"></a-cylinder>
+        </a-cylinder>
+      </a-entity>
+      
+      <a-entity class="leg-bl" position="0.16 0.58 0.42">
+        <a-cylinder radius="0.045" height="0.62" color="#8c5835" position="0 -0.31 0" material="roughness: 0.9">
+          <a-cylinder radius="0.05" height="0.06" color="#3c1e09" position="0 -0.31 0" material="roughness: 1"></a-cylinder>
+        </a-cylinder>
+      </a-entity>
+      
+      <a-entity class="leg-br" position="-0.16 0.58 0.42">
+        <a-cylinder radius="0.045" height="0.62" color="#8c5835" position="0 -0.31 0" material="roughness: 0.9">
+          <a-cylinder radius="0.05" height="0.06" color="#3c1e09" position="0 -0.31 0" material="roughness: 1"></a-cylinder>
+        </a-cylinder>
+      </a-entity>
+    </a-entity>
+
+    <!-- New Doe (Female Deer, spawns in a different forest glade) -->
+    <a-entity class="doe" position="-8 0 -11" rotation="0 135 0" deer-behavior class="interactive">
+      <a-entity class="body-group" position="0 0.8 0">
+        <a-box class="doe-torso" width="0.45" height="0.45" depth="1.05" color="#9e663e" material="roughness: 0.9"></a-box>
+        
+        <!-- Spots -->
+        <a-box width="0.04" height="0.01" depth="0.04" color="#ffffff" position="0.1 0.23 0.15" material="shader: flat"></a-box>
+        <a-box width="0.04" height="0.01" depth="0.04" color="#ffffff" position="-0.1 0.23 0.05" material="shader: flat"></a-box>
+        <a-box width="0.04" height="0.01" depth="0.04" color="#ffffff" position="0.08 0.23 -0.15" material="shader: flat"></a-box>
+        
+        <a-box class="doe-tail" width="0.09" height="0.22" depth="0.09" color="#ffffff" position="0 0.13 0.55" rotation="40 0 0" material="roughness: 0.9">
+          <a-box width="0.1" height="0.18" depth="0.04" color="#9e663e" position="0 0.03 0.03" material="roughness: 0.9"></a-box>
+        </a-box>
+        
+        <a-entity class="neck-pivot" position="0 0.2 -0.42" rotation="-28 0 0">
+          <a-box class="doe-neck" width="0.2" height="0.6" depth="0.2" color="#9e663e" position="0 0.22 0" material="roughness: 0.9">
+            <a-box width="0.21" height="0.5" depth="0.04" color="#fef6e4" position="0 0 -0.09" material="roughness: 0.9"></a-box>
+            
+            <a-entity class="doe-head" position="0 0.3 -0.08" rotation="20 0 0">
+              <a-box width="0.22" height="0.22" depth="0.4" color="#9e663e" material="roughness: 0.9">
+                <a-box width="0.12" height="0.11" depth="0.18" color="#3c1e09" position="0 -0.05 -0.22" material="roughness: 0.95"></a-box>
+                <a-sphere radius="0.026" color="#111111" position="0.11 0.05 -0.08" material="shader: flat"></a-sphere>
+                <a-sphere radius="0.026" color="#111111" position="-0.11 0.05 -0.08" material="shader: flat"></a-sphere>
+                <a-cone radius-bottom="0.035" radius-top="0" height="0.16" color="#9e663e" position="0.11 0.13 0.04" rotation="25 0 -30" material="roughness: 0.9"></a-cone>
+                <a-cone radius-bottom="0.035" radius-top="0" height="0.16" color="#9e663e" position="-0.11 0.13 0.04" rotation="25 0 30" material="roughness: 0.9"></a-cone>
+              </a-box>
+            </a-entity>
+          </a-box>
+        </a-entity>
+      </a-entity>
+      
+      <a-entity class="leg-fl" position="0.14 0.54 -0.38">
+        <a-cylinder radius="0.04" height="0.58" color="#9e663e" position="0 -0.29 0" material="roughness: 0.9">
+          <a-cylinder radius="0.045" height="0.05" color="#3c1e09" position="0 -0.29 0" material="roughness: 1"></a-cylinder>
+        </a-cylinder>
+      </a-entity>
+      <a-entity class="leg-fr" position="-0.14 0.54 -0.38">
+        <a-cylinder radius="0.04" height="0.58" color="#9e663e" position="0 -0.29 0" material="roughness: 0.9">
+          <a-cylinder radius="0.045" height="0.05" color="#3c1e09" position="0 -0.29 0" material="roughness: 1"></a-cylinder>
+        </a-cylinder>
+      </a-entity>
+      <a-entity class="leg-bl" position="0.14 0.54 0.38">
+        <a-cylinder radius="0.04" height="0.58" color="#9e663e" position="0 -0.29 0" material="roughness: 0.9">
+          <a-cylinder radius="0.045" height="0.05" color="#3c1e09" position="0 -0.29 0" material="roughness: 1"></a-cylinder>
+        </a-cylinder>
+      </a-entity>
+      <a-entity class="leg-br" position="-0.14 0.54 0.38">
+        <a-cylinder radius="0.04" height="0.58" color="#9e663e" position="0 -0.29 0" material="roughness: 0.9">
+          <a-cylinder radius="0.045" height="0.05" color="#3c1e09" position="0 -0.29 0" material="roughness: 1"></a-cylinder>
+        </a-cylinder>
+      </a-entity>
+    </a-entity>
+
+    <!-- Flying Birds (Orbiting high in the distance loops) -->
+    <a-entity id="birds">
+      <a-entity class="bird" flying-bird="radius: 35; speed: 0.04; height: 26; center: 0 0 -10">
+        <a-cone radius-bottom="0.05" radius-top="0" height="0.25" color="#1a2528" rotation="90 0 0" material="shader: flat"></a-cone>
+        <a-entity id="bird1-wing-l" position="0.04 0 0">
+          <a-box width="0.28" height="0.01" depth="0.08" color="#1a2528" position="0.14 0 0" material="shader: flat"></a-box>
+        </a-entity>
+        <a-entity id="bird1-wing-r" position="-0.04 0 0">
+          <a-box width="0.28" height="0.01" depth="0.08" color="#1a2528" position="-0.14 0 0" material="shader: flat"></a-box>
+        </a-entity>
+      </a-entity>
+      
+      <a-entity class="bird" flying-bird="radius: 40; speed: 0.035; height: 32; center: -20 0 -30; phase: 2.1">
+        <a-cone radius-bottom="0.05" radius-top="0" height="0.25" color="#111c1e" rotation="90 0 0" material="shader: flat"></a-cone>
+        <a-entity id="bird2-wing-l" position="0.04 0 0">
+          <a-box width="0.28" height="0.01" depth="0.08" color="#111c1e" position="0.14 0 0" material="shader: flat"></a-box>
+        </a-entity>
+        <a-entity id="bird2-wing-r" position="-0.04 0 0">
+          <a-box width="0.28" height="0.01" depth="0.08" color="#111c1e" position="-0.14 0 0" material="shader: flat"></a-box>
+        </a-entity>
+      </a-entity>
+
+      <a-entity class="bird" flying-bird="radius: 28; speed: 0.045; height: 22; center: 15 0 20; phase: 0.8">
+        <a-cone radius-bottom="0.05" radius-top="0" height="0.25" color="#1a2528" rotation="90 0 0" material="shader: flat"></a-cone>
+        <a-entity id="bird3-wing-l" position="0.04 0 0">
+          <a-box width="0.28" height="0.01" depth="0.08" color="#1a2528" position="0.14 0 0" material="shader: flat"></a-box>
+        </a-entity>
+        <a-entity id="bird3-wing-r" position="-0.04 0 0">
+          <a-box width="0.28" height="0.01" depth="0.08" color="#1a2528" position="-0.14 0 0" material="shader: flat"></a-box>
+        </a-entity>
+      </a-entity>
+
+      <a-entity class="bird" flying-bird="radius: 45; speed: 0.03; height: 28; center: -10 0 10; phase: 4.2">
+        <a-cone radius-bottom="0.05" radius-top="0" height="0.25" color="#111c1e" rotation="90 0 0" material="shader: flat"></a-cone>
+        <a-entity id="bird4-wing-l" position="0.04 0 0">
+          <a-box width="0.28" height="0.01" depth="0.08" color="#111c1e" position="0.14 0 0" material="shader: flat"></a-box>
+        </a-entity>
+        <a-entity id="bird4-wing-r" position="-0.04 0 0">
+          <a-box width="0.28" height="0.01" depth="0.08" color="#111c1e" position="-0.14 0 0" material="shader: flat"></a-box>
+        </a-entity>
+      </a-entity>
+
+      <a-entity class="bird" flying-bird="radius: 32; speed: 0.05; height: 24; center: 30 0 -20; phase: 1.5">
+        <a-cone radius-bottom="0.05" radius-top="0" height="0.25" color="#1a2528" rotation="90 0 0" material="shader: flat"></a-cone>
+        <a-entity id="bird5-wing-l" position="0.04 0 0">
+          <a-box width="0.28" height="0.01" depth="0.08" color="#1a2528" position="0.14 0 0" material="shader: flat"></a-box>
+        </a-entity>
+        <a-entity id="bird5-wing-r" position="-0.04 0 0">
+          <a-box width="0.28" height="0.01" depth="0.08" color="#1a2528" position="-0.14 0 0" material="shader: flat"></a-box>
+        </a-entity>
+      </a-entity>
+    </a-entity>
+
+    <!-- Fluttering Butterflies (Around flower patches) -->
+    <a-entity id="butterflies">
+      <a-entity class="butterfly" butterfly-behavior="anchor: 2.8 0.4 -2.5">
+        <a-sphere radius="0.012" color="#1a1a1a" material="shader: flat"></a-sphere>
+        <a-entity id="b1-wing-l" position="0.01 0 0">
+          <a-plane width="0.045" height="0.045" color="#ff6b6b" position="0.022 0 0" material="side: double; shader: flat"></a-plane>
+        </a-entity>
+        <a-entity id="b1-wing-r" position="-0.01 0 0">
+          <a-plane width="0.045" height="0.045" color="#ff6b6b" position="-0.022 0 0" material="side: double; shader: flat"></a-plane>
+        </a-entity>
+      </a-entity>
+
+      <a-entity class="butterfly" butterfly-behavior="anchor: -3 0.4 -5">
+        <a-sphere radius="0.012" color="#1a1a1a" material="shader: flat"></a-sphere>
+        <a-entity id="b2-wing-l" position="0.01 0 0">
+          <a-plane width="0.045" height="0.045" color="#f7d070" position="0.022 0 0" material="side: double; shader: flat"></a-plane>
+        </a-entity>
+        <a-entity id="b2-wing-r" position="-0.01 0 0">
+          <a-plane width="0.045" height="0.045" color="#f7d070" position="-0.022 0 0" material="side: double; shader: flat"></a-plane>
+        </a-entity>
+      </a-entity>
+
+      <a-entity class="butterfly" butterfly-behavior="anchor: -8 0.4 4">
+        <a-sphere radius="0.012" color="#1a1a1a" material="shader: flat"></a-sphere>
+        <a-entity id="b3-wing-l" position="0.01 0 0">
+          <a-plane width="0.045" height="0.045" color="#4ea5b5" position="0.022 0 0" material="side: double; shader: flat"></a-plane>
+        </a-entity>
+        <a-entity id="b3-wing-r" position="-0.01 0 0">
+          <a-plane width="0.045" height="0.045" color="#4ea5b5" position="-0.022 0 0" material="side: double; shader: flat"></a-plane>
+        </a-entity>
+      </a-entity>
+    </a-entity>
+
+
+    <!-- ==========================================
+         6. CONTROLS & 7. INTERACTIONS
+         ========================================== -->
+    
+    <!-- Visual Teleport target marker on ground -->
+    <a-ring id="teleport-reticle" rotation="-90 0 0" radius-inner="0.35" radius-outer="0.55" color="#0be6a8" material="shader: flat; transparent: true; opacity: 0.8" visible="false"></a-ring>
+
+    <!-- Camera Rig -->
+    <a-entity id="rig" position="0 0 5">
+      <!-- Camera: wasd-controls for front/back movement, look-controls for dragging.
+           Added custom desktop-zoom component to allow FOV changes -->
+      <a-camera id="camera" position="0 1.6 0" wasd-controls="acceleration: 15" look-controls desktop-zoom>
+        <!-- Desktop cursor reticle for non-VR clicking and navigation -->
+        <a-cursor id="desktop-cursor" raycaster="objects: .interactive, .teleportable" material="color: #0be6a8; shader: flat" position="0 0 -1" scale="0.5 0.5 0.5" animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.1 0.1 0.1; to: 0.5 0.5 0.5"></a-cursor>
+      </a-camera>
+
+      <!-- Left Controller (Laser Pointer only for interaction) -->
+      <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .interactive; far: 40; showLine: true" line="color: #0be6a8; opacity: 0.5"></a-entity>
+
+      <!-- Right Controller (Laser Pointer + Teleport functionality) -->
+      <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .interactive, .teleportable; far: 40; showLine: true" line="color: #b2fefa; opacity: 0.5" teleporter></a-entity>
+    </a-entity>
+
+  </a-scene>
+
+  <!-- ==========================================
+       8. AUDIO, 9. PERFORMANCE & 10. JAVASCRIPT
+       ========================================== -->
+  <script>
+    // Web Audio ambient synthesis context
+    let audioCtx = null;
+    let synthInitialized = false;
+
+    // Detection of WebXR support
+    window.addEventListener('load', () => {
+      console.log("NatureVerse: Loaded. Initializing systems...");
+      if (!navigator.xr) {
+        document.getElementById('vr-fallback-msg').style.display = 'block';
+      } else {
+        navigator.xr.isSessionSupported('immersive-vr').then(supported => {
+          if (!supported) {
+            document.getElementById('vr-fallback-msg').style.display = 'block';
+          }
+        });
+      }
+    });
+
+    // Custom helper to generate White Noise Buffer
+    function createNoiseBuffer(ctx) {
+      const bufferSize = ctx.sampleRate * 2;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      return noiseBuffer;
+    }
+
+    // Audio synthesizer initialization (Triggers on user click gesture)
+    function initAudio() {
+      if (synthInitialized) return;
+      console.log("NatureVerse: Synthesizing natural audio nodes...");
+      
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        
+        const noiseBuffer = createNoiseBuffer(audioCtx);
+        
+        // 1. Wind Sound Generator
+        const windNoise = audioCtx.createBufferSource();
+        windNoise.buffer = noiseBuffer;
+        windNoise.loop = true;
+
+        const windFilter = audioCtx.createBiquadFilter();
+        windFilter.type = 'lowpass';
+        windFilter.Q.value = 1.2;
+
+        const windGain = audioCtx.createGain();
+        windGain.gain.value = 0.08;
+
+        const windLFO = audioCtx.createOscillator();
+        windLFO.frequency.value = 0.08; 
+        const windLFOGain = audioCtx.createGain();
+        windLFOGain.gain.value = 150; 
+
+        windLFO.connect(windLFOGain);
+        windLFOGain.connect(windFilter.frequency);
+        windFilter.frequency.value = 350; 
+
+        windNoise.connect(windFilter);
+        windFilter.connect(windGain);
+        windGain.connect(audioCtx.destination);
+        
+        windLFO.start();
+        windNoise.start();
+
+        // 2. Spatialized Waterfall Noise
+        const waterfallNoise = audioCtx.createBufferSource();
+        waterfallNoise.buffer = noiseBuffer;
+        waterfallNoise.loop = true;
+
+        const waterfallFilter = audioCtx.createBiquadFilter();
+        waterfallFilter.type = 'bandpass';
+        waterfallFilter.frequency.value = 520;
+        waterfallFilter.Q.value = 0.7;
+
+        const waterfallGain = audioCtx.createGain();
+        waterfallGain.gain.value = 0.22;
+
+        const waterfallPanner = audioCtx.createPanner ? audioCtx.createPanner() : null;
+        
+        waterfallNoise.connect(waterfallFilter);
+        waterfallFilter.connect(waterfallGain);
+
+        if (waterfallPanner) {
+          waterfallPanner.panningModel = 'HRTF';
+          waterfallPanner.distanceModel = 'inverse';
+          waterfallPanner.refDistance = 5;
+          waterfallPanner.maxDistance = 100;
+          waterfallPanner.rolloffFactor = 1.2;
+          
+          waterfallPanner.positionX.value = -43;
+          waterfallPanner.positionY.value = 8;
+          waterfallPanner.positionZ.value = -43;
+          
+          waterfallGain.connect(waterfallPanner);
+          waterfallPanner.connect(audioCtx.destination);
+        } else {
+          waterfallGain.connect(audioCtx.destination);
+        }
+        
+        waterfallNoise.start();
+
+        // 3. Spatialized River Ambient Noise
+        const riverNoise = audioCtx.createBufferSource();
+        riverNoise.buffer = noiseBuffer;
+        riverNoise.loop = true;
+
+        const riverFilter = audioCtx.createBiquadFilter();
+        riverFilter.type = 'bandpass';
+        riverFilter.frequency.value = 650;
+        riverFilter.Q.value = 0.85;
+
+        const riverGain = audioCtx.createGain();
+        riverGain.gain.value = 0.12;
+
+        const riverPanner = audioCtx.createPanner ? audioCtx.createPanner() : null;
+
+        riverNoise.connect(riverFilter);
+        riverFilter.connect(riverGain);
+
+        if (riverPanner) {
+          riverPanner.panningModel = 'HRTF';
+          riverPanner.distanceModel = 'inverse';
+          riverPanner.refDistance = 4;
+          riverPanner.maxDistance = 80;
+          riverPanner.rolloffFactor = 1.0;
+          
+          riverPanner.positionX.value = -15;
+          riverPanner.positionY.value = 0.1;
+          riverPanner.positionZ.value = -7;
+          
+          riverGain.connect(riverPanner);
+          riverPanner.connect(audioCtx.destination);
+        } else {
+          riverGain.connect(audioCtx.destination);
+        }
+
+        riverNoise.start();
+
+        // 4. Random Spatial Bird Chirp Scheduler
+        setInterval(() => {
+          triggerBirdChirp();
+        }, 7000 + Math.random() * 9000);
+
+        synthInitialized = true;
+        console.log("NatureVerse: Synthesizer successfully running.");
+      } catch (err) {
+        console.warn("Web Audio API not fully initialized or blocked:", err);
+      }
+    }
+
+    // Synthesized Bird Chirp generator (Frequency Sweep Sine wave)
+    function triggerBirdChirp() {
+      if (!audioCtx || audioCtx.state === 'suspended') return;
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const panner = audioCtx.createPanner ? audioCtx.createPanner() : null;
+
+      osc.type = 'sine';
+      
+      const startFreq = 2600 + Math.random() * 800;
+      osc.frequency.setValueAtTime(startFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(startFreq - 900, now + 0.12);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.06, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+      osc.connect(gain);
+
+      if (panner) {
+        panner.panningModel = 'HRTF';
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 12 + Math.random() * 18;
+        const bx = Math.cos(angle) * dist;
+        const bz = Math.sin(angle) * dist;
+        const by = 4 + Math.random() * 8; 
+
+        panner.positionX.value = bx;
+        panner.positionY.value = by;
+        panner.positionZ.value = bz;
+
+        gain.connect(panner);
+        panner.connect(audioCtx.destination);
+      } else {
+        gain.connect(audioCtx.destination);
+      }
+
+      osc.start(now);
+      osc.stop(now + 0.13);
+
+      if (Math.random() > 0.4) {
+        setTimeout(triggerBirdChirp, 180 + Math.random() * 100);
+      }
+    }
+
+    // Synthesized Deer Alert Snort
+    function playDeerSnort(x, y, z) {
+      if (!audioCtx || audioCtx.state === 'suspended') return;
+      console.log("NatureVerse: Play deer warning rustle at coordinate:", x, y, z);
+      
+      const now = audioCtx.currentTime;
+      const snortSource = audioCtx.createBufferSource();
+      snortSource.buffer = createNoiseBuffer(audioCtx);
+      
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(180, now);
+      filter.Q.value = 1.0;
+      
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.18, now + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+      const panner = audioCtx.createPanner ? audioCtx.createPanner() : null;
+
+      snortSource.connect(filter);
+      filter.connect(gain);
+
+      if (panner) {
+        panner.panningModel = 'HRTF';
+        panner.positionX.value = x;
+        panner.positionY.value = y;
+        panner.positionZ.value = z;
+        gain.connect(panner);
+        panner.connect(audioCtx.destination);
+      } else {
+        gain.connect(audioCtx.destination);
+      }
+
+      snortSource.start(now);
+      snortSource.stop(now + 0.22);
+    }
+
+    // Synthesized Teleportation Sound Effect
+    function playTeleportSound() {
+      if (!audioCtx || audioCtx.state === 'suspended') return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(450, now + 0.25);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.04, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.3);
+    }
+
+    // Landing Screen Action Handler
+    const enterBtn = document.getElementById('enter-btn');
+    const landingScreen = document.getElementById('landing-screen');
+    const instructionsOverlay = document.getElementById('desktop-instructions');
+    const sceneEl = document.querySelector('a-scene');
+
+    enterBtn.addEventListener('click', () => {
+      // 1. Initialize audio node structures
+      initAudio();
+      
+      // 2. Fade landing panel CSS overlay
+      landingScreen.style.opacity = '0';
+      landingScreen.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        landingScreen.style.display = 'none';
+        
+        // Show navigation guide instructions on desktop
+        if (!sceneEl.is('vr-mode')) {
+          instructionsOverlay.style.display = 'block';
+        }
+      }, 1000);
+      
+      // 3. Initiate WebXR VR immersive mode request (Must run inside click handler user gesture)
+      if (navigator.xr) {
+        navigator.xr.isSessionSupported('immersive-vr').then(supported => {
+          if (supported && sceneEl.enterVR) {
+            sceneEl.enterVR();
+          }
+        });
+      }
+    });
+
+    // Web Audio listener position tracking component.
+    AFRAME.registerComponent('audio-listener-updater', {
+      init: function () {
+        this.cameraEl = document.querySelector('#camera');
+        this.tempPos = new THREE.Vector3();
+        this.tempDir = new THREE.Vector3();
+      },
+      tick: function () {
+        if (!audioCtx || !this.cameraEl) return;
+        
+        const listener = audioCtx.listener;
+        this.cameraEl.object3D.getWorldPosition(this.tempPos);
+        this.cameraEl.object3D.getWorldDirection(this.tempDir);
+
+        if (listener.positionX) {
+          listener.positionX.value = this.tempPos.x;
+          listener.positionY.value = this.tempPos.y;
+          listener.positionZ.value = this.tempPos.z;
+          
+          listener.forwardX.value = -this.tempDir.x;
+          listener.forwardY.value = -this.tempDir.y;
+          listener.forwardZ.value = -this.tempDir.z;
+          
+          listener.upX.value = 0;
+          listener.upY.value = 1;
+          listener.upZ.value = 0;
+        } else {
+          listener.setPosition(this.tempPos.x, this.tempPos.y, this.tempPos.z);
+          listener.setOrientation(-this.tempDir.x, -this.tempDir.y, -this.tempDir.z, 0, 1, 0);
+        }
+      }
+    });
+    sceneEl.setAttribute('audio-listener-updater', '');
+
+    // Hide desktop UI items when entering VR
+    sceneEl.addEventListener('enter-vr', () => {
+      document.getElementById('desktop-cursor').setAttribute('visible', false);
+      instructionsOverlay.style.display = 'none';
+    });
+    sceneEl.addEventListener('exit-vr', () => {
+      document.getElementById('desktop-cursor').setAttribute('visible', true);
+      if (landingScreen.style.display === 'none') {
+        instructionsOverlay.style.display = 'block';
+      }
+    });
+
+
+    // ==========================================
+    // CUSTOM A-FRAME COMPONENTS
+    // ==========================================
+
+    // Desktop Zoom Component: Handles FOV scrolling zoom and hotkeys
+    AFRAME.registerComponent('desktop-zoom', {
+      init: function () {
+        this.minFov = 20;
+        this.maxFov = 80;
+        this.currentFov = 60;
+        
+        const cam = this.el.getAttribute('camera');
+        if (cam) {
+          this.currentFov = cam.fov || 60;
+        }
+        
+        // Zoom via mouse wheel scrolling
+        window.addEventListener('wheel', (evt) => {
+          if (this.el.sceneEl.is('vr-mode')) return;
+          
+          const cameraComp = this.el.getAttribute('camera');
+          if (!cameraComp) return;
+          
+          // Speed scale multiplier
+          this.currentFov += evt.deltaY * 0.05;
+          this.currentFov = Math.max(this.minFov, Math.min(this.maxFov, this.currentFov));
+          
+          this.el.setAttribute('camera', 'fov', this.currentFov);
+        });
+
+        // Zoom via +/- and Z/X keyboard buttons
+        window.addEventListener('keydown', (evt) => {
+          if (this.el.sceneEl.is('vr-mode')) return;
+          
+          const cameraComp = this.el.getAttribute('camera');
+          if (!cameraComp) return;
+          
+          let modified = false;
+          if (evt.key === '+' || evt.key === '=' || evt.key === 'z' || evt.key === 'Z') {
+            this.currentFov -= 3.5; // Zoom in
+            modified = true;
+          } else if (evt.key === '-' || evt.key === '_' || evt.key === 'x' || evt.key === 'X') {
+            this.currentFov += 3.5; // Zoom out
+            modified = true;
+          }
+          
+          if (modified) {
+            this.currentFov = Math.max(this.minFov, Math.min(this.maxFov, this.currentFov));
+            this.el.setAttribute('camera', 'fov', this.currentFov);
+          }
+        });
+      }
+    });
+
+    // Procedural ground texture renderer
+    AFRAME.registerComponent('procedural-ground', {
+      init: function () {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.fillStyle = '#233e2c';
+        ctx.fillRect(0, 0, 512, 512);
+        
+        ctx.fillStyle = '#1d3425';
+        for (let i = 0; i < 4000; i++) {
+          const rx = Math.random() * 512;
+          const ry = Math.random() * 512;
+          ctx.fillRect(rx, ry, 3 + Math.random() * 4, 3 + Math.random() * 4);
+        }
+        
+        ctx.fillStyle = '#2c4d37';
+        for (let i = 0; i < 3000; i++) {
+          const rx = Math.random() * 512;
+          const ry = Math.random() * 512;
+          ctx.fillRect(rx, ry, 1 + Math.random() * 2, 4 + Math.random() * 6);
+        }
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(100, 100); 
+        
+        const mesh = this.el.getObject3D('mesh');
+        if (mesh && mesh.material) {
+          mesh.material.map = texture;
+          mesh.material.needsUpdate = true;
+        } else {
+          this.el.addEventListener('object3dset', () => {
+            const m = this.el.getObject3D('mesh');
+            if (m && m.material) {
+              m.material.map = texture;
+              m.material.needsUpdate = true;
+            }
+          });
+        }
+      }
+    });
+
+    // Procedural water shader scrolling canvas texture component
+    AFRAME.registerComponent('procedural-water', {
+      schema: {
+        speed: {type: 'number', default: 1.0},
+        scaleX: {type: 'number', default: 4},
+        scaleY: {type: 'number', default: 12}
+      },
+      init: function () {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        
+        this.waves = [];
+        for (let i = 0; i < 7; i++) {
+          this.waves.push({
+            y: Math.random() * 256,
+            amplitude: 4 + Math.random() * 6,
+            frequency: 0.04 + Math.random() * 0.04,
+            speed: 1.5 + Math.random() * 2
+          });
+        }
+        
+        this.texture = new THREE.CanvasTexture(canvas);
+        this.texture.wrapS = THREE.RepeatWrapping;
+        this.texture.wrapT = THREE.RepeatWrapping;
+        this.texture.repeat.set(this.data.scaleX, this.data.scaleY);
+        
+        const mesh = this.el.getObject3D('mesh');
+        if (mesh) {
+          this.applyTexture(mesh);
+        } else {
+          this.el.addEventListener('object3dset', (evt) => {
+            if (evt.detail.type === 'mesh') {
+              this.applyTexture(this.el.getObject3D('mesh'));
+            }
+          });
+        }
+      },
+      applyTexture: function (mesh) {
+        if (mesh.material) {
+          mesh.material.map = this.texture;
+          mesh.material.transparent = true;
+          mesh.material.needsUpdate = true;
+        }
+      },
+      tick: function (time, dt) {
+        if (!this.ctx) return;
+        
+        const ctx = this.ctx;
+        const grad = ctx.createLinearGradient(0, 0, 0, 256);
+        grad.addColorStop(0, '#2e7c8b');
+        grad.addColorStop(0.5, '#4092a1');
+        grad.addColorStop(1, '#236976');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 256, 256);
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3.5;
+        ctx.globalAlpha = 0.4;
+        
+        const timeSec = time / 1000;
+        
+        this.waves.forEach(wave => {
+          ctx.beginPath();
+          const waveY = (wave.y + timeSec * wave.speed * 22 * this.data.speed) % 256;
+          ctx.moveTo(0, waveY);
+          for (let x = 0; x <= 256; x += 10) {
+            const offset = Math.sin(x * wave.frequency + timeSec * 3.5) * wave.amplitude;
+            ctx.lineTo(x, waveY + offset);
+          }
+          ctx.stroke();
+        });
+        
+        ctx.strokeStyle = '#8ee0ed';
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = 0.2;
+        ctx.beginPath();
+        for (let x = 0; x <= 256; x += 20) {
+          const flowX = (x + timeSec * 15) % 256;
+          ctx.moveTo(flowX, 0);
+          ctx.lineTo(flowX, 256);
+        }
+        ctx.stroke();
+        
+        this.texture.needsUpdate = true;
+      }
+    });
+
+    // Waterfall Mist Splash foam generator component
+    AFRAME.registerComponent('waterfall-mist', {
+      init: function () {
+        this.particles = [];
+        this.numParticles = 18;
+        
+        for (let i = 0; i < this.numParticles; i++) {
+          const sp = document.createElement('a-sphere');
+          sp.setAttribute('radius', '0.24');
+          sp.setAttribute('color', '#ffffff');
+          sp.setAttribute('material', 'transparent: true; opacity: 0.35; shader: flat');
+          this.el.appendChild(sp);
+          
+          this.particles.push({
+            el: sp,
+            x: (Math.random() - 0.5) * 6.5,
+            y: Math.random() * 1.8,
+            z: (Math.random() - 0.5) * 1.8,
+            vy: 0.6 + Math.random() * 1.2,
+            vx: (Math.random() - 0.5) * 0.5,
+            vz: (Math.random() - 0.5) * 0.5,
+            age: Math.random() * 1.8,
+            maxAge: 1.8
+          });
+        }
+      },
+      tick: function (time, dt) {
+        const dtSec = dt / 1000;
+        this.particles.forEach(p => {
+          p.age += dtSec;
+          if (p.age >= p.maxAge) {
+            p.age = 0;
+            p.x = (Math.random() - 0.5) * 6.5;
+            p.y = 0;
+            p.z = (Math.random() - 0.5) * 1.8;
+            p.vy = 0.6 + Math.random() * 1.2;
+          }
+          p.x += p.vx * dtSec;
+          p.y += p.vy * dtSec;
+          p.z += p.vz * dtSec;
+          
+          const ratio = p.age / p.maxAge;
+          const scaleVal = (1.0 - ratio) * 1.4;
+          const opacityVal = (1.0 - ratio) * 0.38;
+          
+          p.el.setAttribute('position', `${p.x} ${p.y} ${p.z}`);
+          p.el.setAttribute('scale', `${scaleVal} ${scaleVal} ${scaleVal}`);
+          p.el.setAttribute('material', `transparent: true; opacity: ${opacityVal}; shader: flat; color: #ffffff`);
+        });
+      }
+    });
+
+    // Swimming River Duck AI behavior
+    AFRAME.registerComponent('duck-behavior', {
+      schema: {
+        startPos: {type: 'vec3', default: {x: 0, y: 0, z: 0}},
+        endPos: {type: 'vec3', default: {x: 0, y: 0, z: 0}}
+      },
+      init: function () {
+        this.timeOffset = Math.random() * 100;
+      },
+      tick: function (time, dt) {
+        const t = (time * 0.0002) + this.timeOffset;
+        
+        // Sine factor interpolates back and forth between coordinates
+        const factor = (Math.sin(t) + 1) / 2; 
+        
+        const rx = this.data.startPos.x + (this.data.endPos.x - this.data.startPos.x) * factor;
+        const rz = this.data.startPos.z + (this.data.endPos.z - this.data.startPos.z) * factor;
+        
+        // Soft floating bounce
+        const ry = 0.04 + Math.sin(time * 0.0018) * 0.02; 
+        this.el.setAttribute('position', `${rx} ${ry} ${rz}`);
+        
+        // Rotate duck to head in direction of travel
+        const isForward = Math.cos(t) > 0;
+        let yawRad;
+        if (isForward) {
+          yawRad = Math.atan2(this.data.endPos.x - this.data.startPos.x, this.data.endPos.z - this.data.startPos.z);
+        } else {
+          yawRad = Math.atan2(this.data.startPos.x - this.data.endPos.x, this.data.startPos.z - this.data.endPos.z);
+        }
+        
+        const yawDeg = yawRad * (180 / Math.PI);
+        this.el.setAttribute('rotation', `0 ${yawDeg} 0`);
+      }
+    });
+
+    // Hopping Bunny AI state behavior
+    AFRAME.registerComponent('rabbit-behavior', {
+      init: function () {
+        this.playerCam = document.getElementById('camera');
+        this.states = { IDLE: 'idle', HOP: 'hop', FLEE: 'flee' };
+        this.state = this.states.IDLE;
+        
+        this.currentPos = this.el.getAttribute('position');
+        this.targetPos = new THREE.Vector3();
+        this.timer = 1500 + Math.random() * 2500;
+        this.hopSpeed = 0.024;
+        this.fleeSpeed = 0.055;
+        
+        this.hopTimer = 0;
+        this.bodyGroup = this.el.querySelector('.rabbit-body-group');
+        
+        this.tempPlayerWorldPos = new THREE.Vector3();
+        this.tempRabbitWorldPos = new THREE.Vector3();
+      },
+      tick: function (time, dt) {
+        if (!this.playerCam) return;
+        
+        this.playerCam.object3D.getWorldPosition(this.tempPlayerWorldPos);
+        this.el.object3D.getWorldPosition(this.tempRabbitWorldPos);
+        
+        const distToPlayer = this.tempRabbitWorldPos.distanceTo(this.tempPlayerWorldPos);
+        
+        // Startled if player approaches closer than 4.5m
+        if (distToPlayer < 4.5 && this.state !== this.states.FLEE) {
+          this.triggerFleeState();
+        }
+        
+        this.timer -= dt;
+        
+        switch (this.state) {
+          case this.states.IDLE:
+            this.updateIdleState(time);
+            break;
+          case this.states.HOP:
+            this.updateHopState(time, dt);
+            break;
+          case this.states.FLEE:
+            this.updateFleeState(time, dt);
+            break;
+        }
+      },
+      
+      triggerFleeState: function () {
+        this.state = this.states.FLEE;
+        this.timer = 5000; // run away for 5 seconds
+        
+        const dir = new THREE.Vector3().subVectors(this.tempRabbitWorldPos, this.tempPlayerWorldPos);
+        dir.y = 0;
+        dir.normalize();
+        
+        // Run 11 meters away from player
+        const runX = this.tempRabbitWorldPos.x + dir.x * 11;
+        const runZ = this.tempRabbitWorldPos.z + dir.z * 11;
+        
+        this.targetPos.set(
+          Math.max(-41, Math.min(41, runX)),
+          0,
+          Math.max(-41, Math.min(41, runZ))
+        );
+      },
+      
+      updateIdleState: function (time) {
+        if (this.bodyGroup) {
+          this.bodyGroup.setAttribute('position', '0 0 0');
+          this.bodyGroup.setAttribute('rotation', `0 ${Math.sin(time * 0.005) * 6} 0`);
+        }
+        
+        if (this.timer <= 0) {
+          this.state = this.states.HOP;
+          this.timer = 3000 + Math.random() * 4000;
+          this.hopTimer = 0;
+          
+          const rx = this.currentPos.x + (Math.random() - 0.5) * 8.5;
+          const rz = this.currentPos.z + (Math.random() - 0.5) * 8.5;
+          
+          // Only hop to coordinates that are not inside river bed bounds
+          if (!document.querySelector('[forest-generator]').components['forest-generator'].isRiverZone(rx, rz)) {
+            this.targetPos.set(Math.max(-40, Math.min(40, rx)), 0, Math.max(-40, Math.min(40, rz)));
+          } else {
+            this.state = this.states.IDLE;
+            this.timer = 1200;
+          }
+        }
+      },
+      
+      updateHopState: function (time, dt) {
+        const currentVec = new THREE.Vector3(this.currentPos.x, 0, this.currentPos.z);
+        const dist = currentVec.distanceTo(this.targetPos);
+        
+        if (dist < 0.25 || this.timer <= 0) {
+          this.state = this.states.IDLE;
+          this.timer = 1500 + Math.random() * 2000;
+          return;
+        }
+        
+        const dir = new THREE.Vector3().subVectors(this.targetPos, currentVec).normalize();
+        const angleRad = Math.atan2(dir.x, dir.z);
+        this.el.setAttribute('rotation', `0 ${angleRad * (180 / Math.PI)} 0`);
+        
+        this.hopTimer += (dt / 1000) * 8.5; // Hop oscillation cycle
+        const hopHeight = Math.max(0, Math.sin(this.hopTimer)) * 0.16;
+        
+        // Progress coordinate forward during positive hop wave
+        const step = this.hopSpeed * Math.max(0, Math.sin(this.hopTimer)) * (dt / 16.6);
+        this.currentPos.x += dir.x * step;
+        this.currentPos.z += dir.z * step;
+        this.el.setAttribute('position', `${this.currentPos.x} 0 ${this.currentPos.z}`);
+        
+        if (this.bodyGroup) {
+          this.bodyGroup.setAttribute('position', `0 ${hopHeight} 0`);
+          const pitch = Math.cos(this.hopTimer) * 10;
+          this.bodyGroup.setAttribute('rotation', `${pitch} 0 0`);
+        }
+      },
+      
+      updateFleeState: function (time, dt) {
+        const currentVec = new THREE.Vector3(this.currentPos.x, 0, this.currentPos.z);
+        const dist = currentVec.distanceTo(this.targetPos);
+        
+        if (dist < 0.3 || this.timer <= 0) {
+          this.state = this.states.IDLE;
+          this.timer = 2000 + Math.random() * 2000;
+          return;
+        }
+        
+        const dir = new THREE.Vector3().subVectors(this.targetPos, currentVec).normalize();
+        const angleRad = Math.atan2(dir.x, dir.z);
+        this.el.setAttribute('rotation', `0 ${angleRad * (180 / Math.PI)} 0`);
+        
+        this.hopTimer += (dt / 1000) * 13.5; 
+        const hopHeight = Math.max(0, Math.sin(this.hopTimer)) * 0.26;
+        
+        const step = this.fleeSpeed * Math.max(0, Math.sin(this.hopTimer)) * (dt / 16.6);
+        this.currentPos.x += dir.x * step;
+        this.currentPos.z += dir.z * step;
+        this.el.setAttribute('position', `${this.currentPos.x} 0 ${this.currentPos.z}`);
+        
+        if (this.bodyGroup) {
+          this.bodyGroup.setAttribute('position', `0 ${hopHeight} 0`);
+          const pitch = Math.cos(this.hopTimer) * 18;
+          this.bodyGroup.setAttribute('rotation', `${pitch} 0 0`);
+        }
+      }
+    });
+
+    // Forest Generator: Handles dynamic landscape generation (trees, flowers, rocks, rabbits, ducks)
+    AFRAME.registerComponent('forest-generator', {
+      init: function () {
+        const scene = this.el;
+        const totalTrees = 130;
+        const types = ['pine', 'broadleaf', 'blossom'];
+        
+        for (let i = 0; i < totalTrees; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const radius = 9 + Math.random() * 65; 
+          const x = Math.cos(angle) * radius;
+          const z = Math.sin(angle) * radius;
+          
+          if (this.isSpawnZone(x, z) || this.isRiverZone(x, z) || this.isCliffZone(x, z)) {
+            continue;
+          }
+          
+          const type = types[Math.floor(Math.random() * types.length)];
+          const tree = this.createTree(x, z, type);
+          scene.appendChild(tree);
+        }
+        
+        // Spawn rocks bordering the river banks
+        this.spawnRiverRocks(scene);
+        
+        // Scatter colored foliage (flowers, grass tufts) in clearings
+        this.spawnFoliage(scene);
+
+        // Spawn Ducks along the river segment curves
+        this.spawnDucks(scene);
+
+        // Spawn hopping rabbits in clearings
+        this.spawnRabbits(scene);
+      },
+      
+      isSpawnZone: function (x, z) {
+        const dx = x - 0;
+        const dz = z - 5;
+        return Math.sqrt(dx*dx + dz*dz) < 9;
+      },
+      
+      isCliffZone: function (x, z) {
+        const dx = x - (-46);
+        const dz = z - (-46);
+        return Math.sqrt(dx*dx + dz*dz) < 14;
+      },
+      
+      isRiverZone: function (x, z) {
+        const dist = Math.abs(z - x) / 1.414;
+        return dist < 8;
+      },
+      
+      createTree: function (x, z, type) {
+        const treeRig = document.createElement('a-entity');
+        const height = 3.6 + Math.random() * 4.5;
+        const scale = 0.75 + Math.random() * 0.55;
+        
+        treeRig.setAttribute('position', `${x} 0 ${z}`);
+        treeRig.setAttribute('scale', `${scale} ${scale} ${scale}`);
+        
+        const trunk = document.createElement('a-cylinder');
+        trunk.setAttribute('radius', '0.24');
+        trunk.setAttribute('height', height.toString());
+        trunk.setAttribute('color', '#503525'); 
+        trunk.setAttribute('position', `0 ${height / 2} 0`);
+        trunk.setAttribute('material', 'roughness: 0.95');
+        treeRig.appendChild(trunk);
+        
+        if (type === 'pine') {
+          const conesCount = 3;
+          for (let j = 0; j < conesCount; j++) {
+            const cone = document.createElement('a-cone');
+            cone.setAttribute('radius-bottom', (1.7 - j * 0.4).toString());
+            cone.setAttribute('radius-top', '0');
+            cone.setAttribute('height', '2.0');
+            cone.setAttribute('color', '#1b3425'); 
+            cone.setAttribute('position', `0 ${height * 0.55 + j * 1.3} 0`);
+            cone.setAttribute('material', 'roughness: 0.9');
+            treeRig.appendChild(cone);
+          }
+        } else if (type === 'broadleaf') {
+          const leavesGroup = document.createElement('a-entity');
+          leavesGroup.setAttribute('position', `0 ${height} 0`);
+          
+          const greenColors = ['#285322', '#356d2e', '#45853d'];
+          const leafColor = greenColors[Math.floor(Math.random() * greenColors.length)];
+          
+          const positions = ['0 0.5 0', '0.7 0 0.4', '-0.7 0 -0.4', '0 -0.4 0.6', '-0.4 0.3 0.6'];
+          positions.forEach(pos => {
+            const leaf = document.createElement('a-dodecahedron');
+            leaf.setAttribute('radius', (1.2 + Math.random() * 0.4).toString());
+            leaf.setAttribute('color', leafColor);
+            leaf.setAttribute('position', pos);
+            leaf.setAttribute('material', 'roughness: 0.95');
+            leavesGroup.appendChild(leaf);
+          });
+          treeRig.appendChild(leavesGroup);
+        } else {
+          const blossomGroup = document.createElement('a-entity');
+          blossomGroup.setAttribute('position', `0 ${height} 0`);
+          
+          const pinkColors = ['#f5b5cd', '#e28fb1', '#ffd043']; 
+          const color = pinkColors[Math.floor(Math.random() * pinkColors.length)];
+          
+          const positions = ['0 0.4 0', '0.6 0 0.3', '-0.6 0 -0.3', '0.3 -0.3 0.5'];
+          positions.forEach(pos => {
+            const leafSphere = document.createElement('a-sphere');
+            leafSphere.setAttribute('radius', (1.0 + Math.random() * 0.3).toString());
+            leafSphere.setAttribute('color', color);
+            leafSphere.setAttribute('position', pos);
+            leafSphere.setAttribute('material', 'roughness: 0.95');
+            blossomGroup.appendChild(leafSphere);
+          });
+          treeRig.appendChild(blossomGroup);
+        }
+        
+        return treeRig;
+      },
+      
+      spawnRiverRocks: function (scene) {
+        for (let x = -40; x <= 45; x += 5.5) {
+          const bankOffset = 3.6 + Math.random() * 1.8;
+          const leftZ = x - bankOffset;
+          const rightZ = x + bankOffset;
+          
+          this.createRock(scene, x + (Math.random() - 0.5) * 1.5, leftZ);
+          this.createRock(scene, x + (Math.random() - 0.5) * 1.5, rightZ);
+        }
+        
+        for (let r = 0; r < 7; r++) {
+          const angle = Math.random() * Math.PI * 2;
+          const distance = 4 + Math.random() * 4;
+          const rx = -42 + Math.cos(angle) * distance;
+          const rz = -42 + Math.sin(angle) * distance;
+          
+          const rock = document.createElement('a-dodecahedron');
+          const size = 1.8 + Math.random() * 2.2;
+          rock.setAttribute('radius', size.toString());
+          rock.setAttribute('color', '#434749');
+          rock.setAttribute('position', `${rx} ${size / 2 - 0.4} ${rz}`);
+          rock.setAttribute('rotation', `${Math.random() * 360} ${Math.random() * 360} ${Math.random() * 360}`);
+          rock.setAttribute('material', 'roughness: 0.9');
+          scene.appendChild(rock);
+        }
+      },
+      
+      createRock: function (scene, x, z) {
+        const rock = document.createElement('a-dodecahedron');
+        const size = 0.5 + Math.random() * 1.1;
+        rock.setAttribute('radius', size.toString());
+        rock.setAttribute('color', '#4f5355');
+        rock.setAttribute('position', `${x} ${size / 2 - 0.2} ${z}`);
+        rock.setAttribute('rotation', `${Math.random() * 360} ${Math.random() * 360} ${Math.random() * 360}`);
+        rock.setAttribute('material', 'roughness: 0.95');
+        scene.appendChild(rock);
+      },
+      
+      spawnFoliage: function (scene) {
+        const totalFoliage = 160;
+        const colors = ['#e65c5c', '#a366ff', '#ff66b3', '#ffd11a']; 
+        
+        for (let i = 0; i < totalFoliage; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const radius = 6 + Math.random() * 60;
+          const x = Math.cos(angle) * radius;
+          const z = Math.sin(angle) * radius;
+          
+          if (this.isSpawnZone(x, z) || this.isRiverZone(x, z) || this.isCliffZone(x, z)) {
+            continue;
+          }
+          
+          const isFlower = Math.random() > 0.45;
+          if (isFlower) {
+            const flower = document.createElement('a-entity');
+            flower.setAttribute('position', `${x} 0 ${z}`);
+            
+            const stem = document.createElement('a-cylinder');
+            stem.setAttribute('radius', '0.015');
+            stem.setAttribute('height', '0.35');
+            stem.setAttribute('color', '#467551');
+            stem.setAttribute('position', '0 0.17 0');
+            stem.setAttribute('material', 'shader: flat');
+            flower.appendChild(stem);
+            
+            const petals = document.createElement('a-sphere');
+            petals.setAttribute('radius', '0.1');
+            petals.setAttribute('color', colors[Math.floor(Math.random() * colors.length)]);
+            petals.setAttribute('position', '0 0.35 0');
+            petals.setAttribute('material', 'shader: flat');
+            flower.appendChild(petals);
+            
+            scene.appendChild(flower);
+          } else {
+            const clump = document.createElement('a-entity');
+            clump.setAttribute('position', `${x} 0 ${z}`);
+            
+            for (let g = 0; g < 4; g++) {
+              const blade = document.createElement('a-cone');
+              blade.setAttribute('radius-bottom', '0.035');
+              blade.setAttribute('radius-top', '0');
+              blade.setAttribute('height', (0.2 + Math.random() * 0.25).toString());
+              blade.setAttribute('color', '#507851');
+              blade.setAttribute('position', `${(Math.random() - 0.5) * 0.12} 0.12 ${(Math.random() - 0.5) * 0.12}`);
+              blade.setAttribute('rotation', `${(Math.random() - 0.5) * 18} 0 ${(Math.random() - 0.5) * 18}`);
+              blade.setAttribute('material', 'shader: flat');
+              clump.appendChild(blade);
+            }
+            scene.appendChild(clump);
+          }
+        }
+      },
+
+      spawnDucks: function (scene) {
+        // Swim limits set for five ducks placed dynamically downstream
+        const duckData = [
+          { start: {x: -24, y: 0.05, z: -19}, end: {x: -16, y: 0.05, z: -8} },
+          { start: {x: 2, y: 0.05, z: 12}, end: {x: 12, y: 0.05, z: 22} },
+          { start: {x: 22, y: 0.05, z: 28}, end: {x: 32, y: 0.05, z: 36} },
+          { start: {x: -36, y: 0.05, z: -33}, end: {x: -30, y: 0.05, z: -25} },
+          { start: {x: 8, y: 0.05, z: 18}, end: {x: 16, y: 0.05, z: 26} }
+        ];
+
+        duckData.forEach((data, index) => {
+          const duck = document.createElement('a-entity');
+          duck.setAttribute('duck-behavior', `startPos: ${data.start.x} ${data.start.y} ${data.start.z}; endPos: ${data.end.x} ${data.end.y} ${data.end.z}`);
+          
+          // Duck body (yellow cream)
+          const body = document.createElement('a-box');
+          body.setAttribute('width', '0.24');
+          body.setAttribute('height', '0.16');
+          body.setAttribute('depth', '0.36');
+          body.setAttribute('color', '#fffdf0');
+          body.setAttribute('position', '0 0.08 0');
+          body.setAttribute('material', 'roughness: 0.9');
+          duck.appendChild(body);
+          
+          // Head
+          const head = document.createElement('a-box');
+          head.setAttribute('width', '0.14');
+          head.setAttribute('height', '0.14');
+          head.setAttribute('depth', '0.14');
+          head.setAttribute('color', '#fffdf0');
+          head.setAttribute('position', '0 0.2 -0.12');
+          
+          // Beak (orange)
+          const beak = document.createElement('a-box');
+          beak.setAttribute('width', '0.08');
+          beak.setAttribute('height', '0.035');
+          beak.setAttribute('depth', '0.09');
+          beak.setAttribute('color', '#ff9f1c');
+          beak.setAttribute('position', '0 -0.02 -0.09');
+          head.appendChild(beak);
+          
+          duck.appendChild(head);
+          scene.appendChild(duck);
+        });
+      },
+
+      spawnRabbits: function (scene) {
+        // Spawn 8 rabbits in glades close to spawn clearing coordinates
+        for (let r = 0; r < 8; r++) {
+          const angle = Math.random() * Math.PI * 2;
+          const radius = 6.5 + Math.random() * 30; 
+          const rx = Math.cos(angle) * radius;
+          const rz = Math.sin(angle) * radius;
+          
+          if (this.isRiverZone(rx, rz) || this.isSpawnZone(rx, rz)) {
+            continue;
+          }
+          
+          const rabbit = document.createElement('a-entity');
+          rabbit.setAttribute('position', `${rx} 0 ${rz}`);
+          
+          const bodyGroup = document.createElement('a-entity');
+          bodyGroup.setAttribute('class', 'rabbit-body-group');
+          
+          // Body (soft white grey)
+          const body = document.createElement('a-box');
+          body.setAttribute('id', 'rabbit-body');
+          body.setAttribute('width', '0.24');
+          body.setAttribute('height', '0.24');
+          body.setAttribute('depth', '0.36');
+          body.setAttribute('color', '#eaeaea');
+          body.setAttribute('position', '0 0.12 0');
+          body.setAttribute('material', 'roughness: 0.95');
+          bodyGroup.appendChild(body);
+          
+          // Head
+          const head = document.createElement('a-box');
+          head.setAttribute('id', 'rabbit-head');
+          head.setAttribute('width', '0.15');
+          head.setAttribute('height', '0.15');
+          head.setAttribute('depth', '0.15');
+          head.setAttribute('color', '#eaeaea');
+          head.setAttribute('position', '0 0.26 -0.15');
+          
+          // Pink nose
+          const nose = document.createElement('a-box');
+          nose.setAttribute('width', '0.035');
+          nose.setAttribute('height', '0.035');
+          nose.setAttribute('depth', '0.02');
+          nose.setAttribute('color', '#ffa6c9');
+          nose.setAttribute('position', '0 -0.02 -0.09');
+          head.appendChild(nose);
+          
+          // Long ears
+          const earL = document.createElement('a-box');
+          earL.setAttribute('width', '0.04');
+          earL.setAttribute('height', '0.18');
+          earL.setAttribute('depth', '0.02');
+          earL.setAttribute('color', '#eaeaea');
+          earL.setAttribute('position', '0.05 0.16 0');
+          earL.setAttribute('rotation', '15 0 -8');
+          head.appendChild(earL);
+          
+          const earR = document.createElement('a-box');
+          earR.setAttribute('width', '0.04');
+          earR.setAttribute('height', '0.18');
+          earR.setAttribute('depth', '0.02');
+          earR.setAttribute('color', '#eaeaea');
+          earR.setAttribute('position', '-0.05 0.16 0');
+          earR.setAttribute('rotation', '15 0 8');
+          head.appendChild(earR);
+          
+          bodyGroup.appendChild(head);
+          
+          // Cotton tail
+          const tail = document.createElement('a-sphere');
+          tail.setAttribute('radius', '0.05');
+          tail.setAttribute('color', '#ffffff');
+          tail.setAttribute('position', '0 0.18 0.19');
+          bodyGroup.appendChild(tail);
+          
+          rabbit.appendChild(bodyGroup);
+          rabbit.setAttribute('rabbit-behavior', '');
+          
+          scene.appendChild(rabbit);
+        }
+      }
+    });
+
+    // 10. Flying Birds Orbit component
+    AFRAME.registerComponent('flying-bird', {
+      schema: {
+        radius: {type: 'number', default: 30},
+        speed: {type: 'number', default: 0.05},
+        height: {type: 'number', default: 20},
+        center: {type: 'vec3', default: {x: 0, y: 0, z: 0}},
+        phase: {type: 'number', default: 0}
+      },
+      init: function () {
+        this.angle = this.data.phase;
+        this.wingL = this.el.querySelector('[id$="-wing-l"]');
+        this.wingR = this.el.querySelector('[id$="-wing-r"]');
+      },
+      tick: function (time, dt) {
+        const dtSec = dt / 1000;
+        this.angle += this.data.speed * dtSec;
+        
+        const x = this.data.center.x + Math.cos(this.angle) * this.data.radius;
+        const z = this.data.center.z + Math.sin(this.angle) * this.data.radius;
+        this.el.setAttribute('position', `${x} ${this.data.height} ${z}`);
+        
+        const yawDeg = -this.angle * (180 / Math.PI);
+        this.el.setAttribute('rotation', `0 ${yawDeg} 0`);
+        
+        if (this.wingL && this.wingR) {
+          const flap = Math.sin(time * 0.014) * 45;
+          this.wingL.setAttribute('rotation', `0 0 ${flap}`);
+          this.wingR.setAttribute('rotation', `0 0 ${-flap}`);
+        }
+      }
+    });
+
+    // 11. Fluttering Butterfly component
+    AFRAME.registerComponent('butterfly-behavior', {
+      schema: {
+        anchor: {type: 'vec3', default: {x: 0, y: 0, z: 0}}
+      },
+      init: function () {
+        this.wingL = this.el.querySelector('[id$="-wing-l"]');
+        this.wingR = this.el.querySelector('[id$="-wing-r"]');
+        this.timeOffset = Math.random() * 100;
+      },
+      tick: function (time, dt) {
+        const t = (time / 1000) + this.timeOffset;
+        
+        const dx = Math.sin(t * 1.8) * 0.4;
+        const dy = 0.15 + Math.cos(t * 2.3) * 0.18;
+        const dz = Math.cos(t * 1.5) * 0.4;
+        
+        this.el.setAttribute('position', `${this.data.anchor.x + dx} ${this.data.anchor.y + dy} ${this.data.anchor.z + dz}`);
+        
+        if (this.wingL && this.wingR) {
+          const flap = Math.sin(time * 0.05) * 65;
+          this.wingL.setAttribute('rotation', `0 0 ${flap}`);
+          this.wingR.setAttribute('rotation', `0 0 ${-flap}`);
+        }
+      }
+    });
+
+    // 12. Teleporter Controls component (Attaches to tracked right controller)
+    AFRAME.registerComponent('teleporter', {
+      init: function () {
+        this.reticle = document.getElementById('teleport-reticle');
+        this.cameraRig = document.getElementById('rig');
+        this.intersectPoint = null;
+        this.active = false;
+        
+        this.el.addEventListener('raycaster-intersection', (evt) => {
+          const intersections = evt.detail.intersections;
+          for (let i = 0; i < intersections.length; i++) {
+            if (intersections[i].object.el.classList.contains('teleportable')) {
+              this.active = true;
+              this.intersectPoint = intersections[i].point;
+              this.reticle.setAttribute('visible', true);
+              this.reticle.setAttribute('position', this.intersectPoint);
+              break;
+            }
+          }
+        });
+        
+        this.el.addEventListener('raycaster-intersection-cleared', () => {
+          this.active = false;
+          this.intersectPoint = null;
+          this.reticle.setAttribute('visible', false);
+        });
+
+        this.el.addEventListener('click', (evt) => {
+          const intersection = evt.detail.intersection;
+          if (intersection && intersection.object.el.classList.contains('teleportable')) {
+            const point = intersection.point;
+            
+            this.cameraRig.setAttribute('position', {
+              x: point.x,
+              y: this.cameraRig.getAttribute('position').y,
+              z: point.z
+            });
+            
+            playTeleportSound();
+          }
+        });
+      },
+      
+      tick: function () {
+        if (!this.active) return;
+        
+        const raycaster = this.el.components.raycaster;
+        if (raycaster && raycaster.intersections && raycaster.intersections.length > 0) {
+          for (let i = 0; i < raycaster.intersections.length; i++) {
+            const hit = raycaster.intersections[i];
+            if (hit.object.el.classList.contains('teleportable')) {
+              this.intersectPoint = hit.point;
+              this.reticle.setAttribute('position', this.intersectPoint);
+              this.reticle.setAttribute('visible', true);
+              return;
+            }
+          }
+        }
+        this.reticle.setAttribute('visible', false);
+      }
+    });
+
+    // 13. Deer Behavior AI State Machine component
+    AFRAME.registerComponent('deer-behavior', {
+      init: function () {
+        this.playerCam = document.getElementById('camera');
+        
+        this.states = { IDLE: 'idle', WANDER: 'wander', FLEE: 'flee' };
+        this.state = this.states.IDLE;
+        
+        this.currentPos = this.el.getAttribute('position');
+        this.targetPos = new THREE.Vector3();
+        
+        this.timer = 4000; 
+        this.wanderSpeed = 0.016; 
+        this.fleeSpeed = 0.065;
+        
+        this.neckPivot = this.el.querySelector('.neck-pivot');
+        this.deerBody = this.el.querySelector('.body-group');
+        this.legFl = this.el.querySelector('.leg-fl');
+        this.legFr = this.el.querySelector('.leg-fr');
+        this.legBl = this.el.querySelector('.leg-bl');
+        this.legBr = this.el.querySelector('.leg-br');
+        
+        this.tempPlayerWorldPos = new THREE.Vector3();
+        this.tempDeerWorldPos = new THREE.Vector3();
+        
+        console.log("NatureVerse: Deer AI loaded and initialized.");
+      },
+      
+      tick: function (time, dt) {
+        if (!this.playerCam) return;
+        
+        this.playerCam.object3D.getWorldPosition(this.tempPlayerWorldPos);
+        this.el.object3D.getWorldPosition(this.tempDeerWorldPos);
+        
+        const distToPlayer = this.tempDeerWorldPos.distanceTo(this.tempPlayerWorldPos);
+        
+        if (distToPlayer < 6.2 && this.state !== this.states.FLEE) {
+          this.triggerFleeState();
+        }
+        
+        this.timer -= dt;
+        
+        switch (this.state) {
+          case this.states.IDLE:
+            this.updateIdleState(time);
+            break;
+          case this.states.WANDER:
+            this.updateWanderState(time, dt);
+            break;
+          case this.states.FLEE:
+            this.updateFleeState(time, dt);
+            break;
+        }
+      },
+      
+      triggerFleeState: function () {
+        this.state = this.states.FLEE;
+        this.timer = 8000; 
+        
+        if (this.neckPivot) {
+          this.neckPivot.setAttribute('rotation', '-55 0 0');
+        }
+        
+        const dir = new THREE.Vector3().subVectors(this.tempDeerWorldPos, this.tempPlayerWorldPos);
+        dir.y = 0; 
+        dir.normalize();
+        
+        const runToX = this.tempDeerWorldPos.x + dir.x * 22;
+        const runToZ = this.tempDeerWorldPos.z + dir.z * 22;
+        
+        this.targetPos.set(
+          Math.max(-42, Math.min(42, runToX)),
+          0,
+          Math.max(-42, Math.min(42, runToZ))
+        );
+        
+        playDeerSnort(this.tempDeerWorldPos.x, 0.8, this.tempDeerWorldPos.z);
+        console.log("NatureVerse: Deer startled! Fleeing to location:", this.targetPos.x, this.targetPos.z);
+      },
+      
+      updateIdleState: function (time) {
+        if (this.neckPivot) {
+          const headAngle = -26 + Math.sin(time * 0.0012) * 22;
+          this.neckPivot.setAttribute('rotation', `${headAngle} 0 0`);
+        }
+        
+        this.resetLegs();
+        
+        if (this.timer <= 0) {
+          this.state = this.states.WANDER;
+          this.timer = 5000 + Math.random() * 6000;
+          
+          const rx = this.currentPos.x + (Math.random() - 0.5) * 28;
+          const rz = this.currentPos.z + (Math.random() - 0.5) * 28;
+          
+          if (!document.querySelector('[forest-generator]').components['forest-generator'].isRiverZone(rx, rz) &&
+              !document.querySelector('[forest-generator]').components['forest-generator'].isSpawnZone(rx, rz)) {
+            this.targetPos.set(Math.max(-40, Math.min(40, rx)), 0, Math.max(-40, Math.min(40, rz)));
+          } else {
+            this.targetPos.set(10, 0, -10);
+          }
+        }
+      },
+      
+      updateWanderState: function (time, dt) {
+        const currentVec = new THREE.Vector3(this.currentPos.x, 0, this.currentPos.z);
+        const distToTarget = currentVec.distanceTo(this.targetPos);
+        
+        if (distToTarget < 0.4 || this.timer <= 0) {
+          this.state = this.states.IDLE;
+          this.timer = 4000 + Math.random() * 5000;
+          return;
+        }
+        
+        const dir = new THREE.Vector3().subVectors(this.targetPos, currentVec).normalize();
+        const angleRad = Math.atan2(dir.x, dir.z);
+        const angleDeg = angleRad * (180 / Math.PI);
+        this.el.setAttribute('rotation', `0 ${angleDeg} 0`);
+        
+        const step = this.wanderSpeed * (dt / 16.6); 
+        this.currentPos.x += dir.x * step;
+        this.currentPos.z += dir.z * step;
+        this.el.setAttribute('position', `${this.currentPos.x} 0 ${this.currentPos.z}`);
+        
+        if (this.neckPivot) {
+          this.neckPivot.setAttribute('rotation', '-15 0 0');
+        }
+        
+        this.animateLegs(time, 4, 15);
+      },
+      
+      updateFleeState: function (time, dt) {
+        const currentVec = new THREE.Vector3(this.currentPos.x, 0, this.currentPos.z);
+        const distToTarget = currentVec.distanceTo(this.targetPos);
+        
+        if (distToTarget < 0.6 || this.timer <= 0) {
+          this.state = this.states.IDLE;
+          this.timer = 5000 + Math.random() * 4000;
+          return;
+        }
+        
+        const dir = new THREE.Vector3().subVectors(this.targetPos, currentVec).normalize();
+        const angleRad = Math.atan2(dir.x, dir.z);
+        const angleDeg = angleRad * (180 / Math.PI);
+        this.el.setAttribute('rotation', `0 ${angleDeg} 0`);
+        
+        const step = this.fleeSpeed * (dt / 16.6);
+        this.currentPos.x += dir.x * step;
+        this.currentPos.z += dir.z * step;
+        this.el.setAttribute('position', `${this.currentPos.x} 0 ${this.currentPos.z}`);
+        
+        this.animateLegs(time, 15, 34);
+      },
+      
+      animateLegs: function (time, frequencyMultiplier, maxAngle) {
+        const swing = Math.sin(time * 0.01 * frequencyMultiplier) * maxAngle;
+        
+        if (this.legFl && this.legBr) {
+          this.legFl.setAttribute('rotation', `${swing} 0 0`);
+          this.legBr.setAttribute('rotation', `${swing} 0 0`);
+        }
+        if (this.legFr && this.legBl) {
+          this.legFr.setAttribute('rotation', `${-swing} 0 0`);
+          this.legBl.setAttribute('rotation', `${-swing} 0 0`);
+        }
+        
+        if (this.deerBody) {
+          const bob = Math.abs(Math.sin(time * 0.01 * frequencyMultiplier)) * (this.state === this.states.FLEE ? 0.16 : 0.04);
+          this.deerBody.setAttribute('position', `0 ${0.8 + bob} 0`);
+        }
+      },
+      
+      resetLegs: function () {
+        if (this.legFl) this.legFl.setAttribute('rotation', '0 0 0');
+        if (this.legFr) this.legFr.setAttribute('rotation', '0 0 0');
+        if (this.legBl) this.legBl.setAttribute('rotation', '0 0 0');
+        if (this.legBr) this.legBr.setAttribute('rotation', '0 0 0');
+        if (this.deerBody) this.deerBody.setAttribute('position', '0 0.8 0');
+      }
+    });
+  </script>
+</body>
+</html>
